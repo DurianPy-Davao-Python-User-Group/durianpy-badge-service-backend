@@ -1,0 +1,234 @@
+"""Logging module providing a singleton Logger and execution decorator."""
+
+import datetime
+import functools
+import inspect
+import logging
+import sys
+import threading
+from typing import Any, Callable, Optional, Type, TypeVar, Union
+
+from src.core.settings import LogLevel, Settings
+
+F = TypeVar('F', bound=Callable[..., Any])
+
+
+class _ISOFormatter(logging.Formatter):
+    """Logging formatter that outputs timestamps in ISO 8601 format."""
+
+    def formatTime(  # type: ignore
+        self, record: logging.LogRecord
+    ) -> str:
+        """
+        Format record timestamp into ISO 8601 string representation.
+
+        :param record: Log record containing timestamp.
+        :type record: logging.LogRecord
+        :returns: ISO 8601 formatted timestamp string.
+        :rtype: str
+        """
+        dt = datetime.datetime.fromtimestamp(record.created).astimezone()
+        return dt.isoformat()
+
+
+class Logger:
+    """Singleton Logger class wrapping Python's standard logging module."""
+
+    _instance: Optional['Logger'] = None
+    _lock: threading.Lock = threading.Lock()
+
+    def __new__(cls, *_args: Any, **_kwargs: Any) -> 'Logger':
+        """
+        Create or return the singleton Logger instance.
+
+        :returns: The singleton Logger instance.
+        :rtype: Logger
+        """
+        if cls._instance is None:
+            with cls._lock:
+                if cls._instance is None:
+                    instance = super().__new__(cls)
+                    instance._initialized = False
+                    cls._instance = instance
+        return cls._instance
+
+    def __init__(
+        self,
+        name: Optional[str] = None,
+        level: Optional[Union[str, int, LogLevel]] = None,
+    ) -> None:
+        """
+        Initialize the Logger instance if not already initialized.
+
+        :param name: Optional logger name identifier.
+        :type name: Optional[str]
+        :param level: Optional log severity level threshold.
+        :type level: Optional[Union[str, int, LogLevel]]
+        :returns: None
+        :rtype: None
+        """
+        if getattr(self, '_initialized', False):
+            return
+
+        settings = Settings()
+        logger_name = name or settings.APP_NAME
+        raw_level = level if level is not None else settings.LOG_LEVEL
+
+        if isinstance(raw_level, LogLevel):
+            str_level = raw_level.value
+        elif isinstance(raw_level, str):
+            str_level = raw_level
+        else:
+            str_level = None
+
+        if str_level is not None:
+            int_level = getattr(logging, str_level.upper(), logging.INFO)
+        else:
+            int_level = int(raw_level)
+
+        self._logger = logging.getLogger(logger_name)
+        self._logger.setLevel(int_level)
+
+        if not self._logger.handlers:
+            handler = logging.StreamHandler(sys.stdout)
+            formatter = _ISOFormatter('%(asctime)s [%(levelname)s] %(message)s')
+            handler.setFormatter(formatter)
+            self._logger.addHandler(handler)
+
+        self._initialized = True
+
+    @classmethod
+    def get_logger(
+        cls,
+        logger_name: Optional[str] = None,
+        log_level: Optional[Union[str, int, LogLevel]] = None,
+    ) -> 'Logger':
+        """
+        Initialize and return the configured singleton Logger instance.
+
+        :param logger_name: Optional logger name identifier.
+        :type logger_name: Optional[str]
+        :param log_level: Optional log level threshold.
+        :type log_level: Optional[Union[str, int, LogLevel]]
+        :returns: Configured singleton Logger instance.
+        :rtype: Logger
+        """
+        return cls(name=logger_name, level=log_level)
+
+    @staticmethod
+    def log_execution(domain_exception: Optional[Any] = None) -> Any:
+        """
+        Log function/method entrypoint and optional domain exception mapping.
+
+        :param domain_exception: Optional domain exception class to re-raise upon
+            error, or decorated target function.
+        :type domain_exception: Optional[Any]
+        :returns: Decorated target function or decorator wrapper.
+        :rtype: Any
+        """
+        return log_execution(domain_exception)
+
+    def __getattr__(self, name: str) -> Any:
+        """
+        Delegate attribute access to underlying logging.Logger instance.
+
+        :param name: Attribute or method name to access.
+        :type name: str
+        :returns: Attribute from underlying logger instance.
+        :rtype: Any
+        """
+        return getattr(self._logger, name)
+
+
+def _extract_class_name(func: Callable[..., Any], args: tuple[Any, ...]) -> str:
+    """Extract class name or module name for logging format."""
+    if args:
+        first_arg = args[0]
+        if inspect.isclass(first_arg):
+            return first_arg.__name__
+        if hasattr(first_arg, '__class__') and '.' in getattr(func, '__qualname__', ''):
+            return first_arg.__class__.__name__
+
+    qualname = getattr(func, '__qualname__', '')
+    if '.' in qualname:
+        return qualname.rsplit('.', 1)[0]
+
+    return getattr(func, '__module__', 'App')
+
+
+def _decorate(
+    func: Callable[..., Any],
+    domain_exception: Optional[Type[BaseException]],
+) -> Any:
+    """Apply entrypoint logging and domain exception mapping to a function."""
+    logger = Logger()
+
+    if inspect.iscoroutinefunction(func):
+
+        @functools.wraps(func)
+        async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
+            classname = _extract_class_name(func, args)
+            methodname = getattr(func, '__name__', str(func))
+            logger.info(f'[ {classname} ] Executing {methodname}')
+            try:
+                return await func(*args, **kwargs)
+            except Exception as exc:
+                logger.error(f'[ {classname} ] Exception in {methodname}: {exc}')
+                if domain_exception is not None:
+                    if isinstance(exc, domain_exception):
+                        raise
+                    try:
+                        raise domain_exception(str(exc)) from exc
+                    except TypeError:
+                        raise domain_exception() from exc
+                raise
+
+        return async_wrapper
+
+    @functools.wraps(func)
+    def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
+        classname = _extract_class_name(func, args)
+        methodname = getattr(func, '__name__', str(func))
+        logger.info(f'[ {classname} ] Executing {methodname}')
+        try:
+            return func(*args, **kwargs)
+        except Exception as exc:
+            logger.error(f'[ {classname} ] Exception in {methodname}: {exc}')
+            if domain_exception is not None:
+                if isinstance(exc, domain_exception):
+                    raise
+                try:
+                    raise domain_exception(str(exc)) from exc
+                except TypeError:
+                    raise domain_exception() from exc
+            raise
+
+    return sync_wrapper
+
+
+def log_execution(
+    domain_exception: Optional[Any] = None,
+) -> Any:
+    """
+    Log function/method entrypoint and optional domain exception mapping.
+
+    :param domain_exception: Optional domain exception class to re-raise upon
+        error, or decorated target function.
+    :type domain_exception: Optional[Any]
+    :returns: Decorated target function or decorator wrapper.
+    :rtype: Any
+    """
+    if callable(domain_exception) and not (
+        inspect.isclass(domain_exception)
+        and issubclass(domain_exception, BaseException)
+    ):
+        func = domain_exception
+        return _decorate(func, None)
+
+    def decorator(func: F) -> F:
+        return _decorate(func, domain_exception)
+
+    return decorator
+
+
+logger = Logger()
