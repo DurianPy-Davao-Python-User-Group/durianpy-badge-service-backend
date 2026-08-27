@@ -9,6 +9,7 @@
     "ghcr.io/devcontainers/features/git:1": {}
   },
   "workspaceFolder": "/workspace",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
   "customizations": {
     "vscode": {
       "extensions": [

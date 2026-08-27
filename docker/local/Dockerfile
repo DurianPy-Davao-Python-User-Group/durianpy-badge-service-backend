@@ -4,6 +4,7 @@ FROM python:3.12-slim
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     just \
+    openssh-client \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy uv binary from official Astral image
