@@ -1,15 +1,31 @@
-"""
-Domain exceptions package.
+"""Domain exceptions package exporting base and entity-specific domain exceptions."""
 
-Purpose
--------
-Defines explicit domain exception classes raised when business rules or domain
-invariants are violated. Allows application use cases and presentation layers
-to catch and handle business errors cleanly.
+from src.domain.exceptions.badge_design_exceptions import (
+    BadgeDesignCreationError,
+    BadgeDesignError,
+    BadgeDesignNotFoundError,
+    BadgeDesignQueryError,
+    BadgeDesignRepositoryError,
+    MediaResolutionError,
+)
+from src.domain.exceptions.base_exceptions import (
+    DomainError,
+    EntityNotFoundError,
+    EntityValidationError,
+    RepositoryError,
+    StorageServiceError,
+)
 
-Allowed File Types
-------------------
-- Base domain exception classes and hierarchy definitions.
-- Entity-specific domain exception classes.
-- Business invariant error and domain validation failure exception types.
-"""
+__all__ = [
+    'DomainError',
+    'EntityNotFoundError',
+    'EntityValidationError',
+    'RepositoryError',
+    'StorageServiceError',
+    'BadgeDesignError',
+    'BadgeDesignNotFoundError',
+    'BadgeDesignRepositoryError',
+    'BadgeDesignCreationError',
+    'BadgeDesignQueryError',
+    'MediaResolutionError',
+]

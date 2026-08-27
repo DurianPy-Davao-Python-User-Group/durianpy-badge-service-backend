@@ -8,14 +8,17 @@ dependencies = [
     "fastapi[standard]>=0.141.1",
     "lambda-warmer-py>=0.6.0",
     "mangum>=0.21.0",
+    "pydantic-settings>=2.15.0",
     "pynamodb>=6.1.0",
     "python-decouple>=3.8",
 ]
 
+
 [dependency-groups]
 dev = [
-    "boto>=2.49.0",
+    "boto3>=1.43.75",
     "moto>=5.2.2",
+    "prek>=0.4.14",
     "pytest>=9.1.1",
     "ruff>=0.16.3",
     "ty>=0.0.73",
@@ -51,7 +54,7 @@ exclude = [
     "venv",
 ]
 
-line-length = 88
+line-length = 120
 indent-width = 4
 
 [tool.ruff.lint]
@@ -61,6 +64,7 @@ ignore = [
     "E111",    # indentation-with-invalid-multiple
     "E114",    # indentation-with-invalid-multiple-comment
     "E117",    # over-indented
+    "D106",    # missing-docstring-in-public-nested-class
     "D203",    # incorrect-blank-line-before-class
     "D206",    # docstring-tab-indentation
     "D300",    # triple-single-quotes
@@ -90,5 +94,3 @@ docstring-code-line-length = 20
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
-
-

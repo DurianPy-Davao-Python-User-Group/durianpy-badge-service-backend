@@ -1,0 +1,65 @@
+{
+  "name": "DurianPy Badge System Backend",
+  "build": {
+    "dockerfile": "../docker/local/Dockerfile",
+    "context": ".."
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/aws-cli:1.1.4": {},
+    "ghcr.io/devcontainers/features/git:1": {}
+  },
+  "workspaceFolder": "/workspace",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "astral-sh.ty",
+        "charliermarsh.ruff",
+        "skellock.just",
+        "tamasfe.even-better-toml",
+        "google.google-antigravity",
+        "anthropic.claude-code"
+      ],
+      "settings": {
+        "files.eol": "\n",
+        "editor.tabSize": 4,
+        "editor.insertSpaces": true,
+        "editor.rulers": [
+          88
+        ],
+        "files.exclude": {
+          "**/__pycache__": true,
+          "**/.pytest_cache": true,
+          "**/.ruff_cache": true
+        },
+        "python.defaultInterpreterPath": "/workspace/.venv/bin/python",
+        "python.languageServer": "None",
+        "ty.disableLanguageServices": false,
+        "python.testing.pytestEnabled": true,
+        "python.testing.unittestEnabled": false,
+        "python.testing.pytestArgs": [
+          "tests"
+        ],
+        "[python]": {
+          "editor.defaultFormatter": "charliermarsh.ruff",
+          "editor.formatOnSave": true,
+          "editor.codeActionsOnSave": {
+            "source.organizeImports.ruff": "explicit",
+            "source.fixAll.ruff": "explicit"
+          }
+        },
+        "terminal.integrated.defaultProfile.linux": "bash"
+      }
+    }
+  },
+  "mounts": [
+    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.aws,target=/root/.aws,type=bind",
+    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=/root/.ssh,type=bind,readonly",
+    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.gitconfig,target=/root/.gitconfig,type=bind,readonly"
+  ],
+  "forwardPorts": [
+    8000
+  ],
+  "postCreateCommand": "uv sync --frozen && just prepare-pre-commit && clear",
+  "postAttachCommand": "bash"
+}

@@ -23,12 +23,22 @@ class LogLevel(str, Enum):
 
 
 class Settings(BaseSettings):
-    """Application setting values loaded from environment variables or .env file."""
+    """Application setting values loaded from environment variables and local .env file."""
 
-    APP_NAME: str = 'DurianPy Badge System'
+    # Base Settings
+    APP_NAME: str = 'durianpy-badge-system'
     ENVIRONMENT: Environment = Environment.DEVELOPMENT
     LOG_LEVEL: LogLevel = LogLevel.DEBUG
 
+    # AWS Settings
+    REGION: str = 'ap-southeast-1'
+    CLOUDFRONT_URL: str = 'https://test.cloudfront.net'
+
     model_config = SettingsConfigDict(
-        env_file='.env', env_file_encoding='utf-8', extra='ignore'
+        env_file='.env',
+        env_file_encoding='utf-8',
+        extra='ignore',
     )
+
+
+settings = Settings()
