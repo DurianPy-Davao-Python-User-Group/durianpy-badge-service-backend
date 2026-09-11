@@ -95,9 +95,7 @@ When logging strings containing sensitive user data, PII (emails, names), API ke
 from src.core.logging import logger, mask_string
 
 # Example: Concise state change with masked attribution
-logger.info(
-    f"Created badge design '{design.design_id}' by user '{mask_string(created_by)}'"
-)
+logger.info(f"Created badge design '{design.design_id}' by user '{mask_string(created_by)}'")
 
 # Example: Concise parameter debugging with masked token
 logger.debug(
@@ -200,11 +198,14 @@ from src.infrastructure.storage.cloudfront_media_url_resolver import (
     CloudFrontMediaUrlResolver,
 )
 
+
 def get_badge_design_repository() -> BadgeDesignRepositoryPort:
     return PynamoBadgeDesignRepository()
 
+
 def get_media_url_resolver() -> MediaUrlResolverPort:
     return CloudFrontMediaUrlResolver()
+
 
 def get_public_badge_designs_use_case(
     repository: BadgeDesignRepositoryPort = Depends(get_badge_design_repository),
@@ -219,6 +220,7 @@ def get_public_badge_designs_use_case(
 Controllers then depend **strictly on the use case port interface**:
 ```python
 # src/presentation/api/routes/public_catalog_controller.py
+
 
 @router.get('/designs', response_model=PublicCatalogResponseSchema)
 def get_public_badge_designs(
