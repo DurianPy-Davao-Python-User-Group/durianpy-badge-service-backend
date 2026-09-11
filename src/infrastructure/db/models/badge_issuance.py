@@ -13,8 +13,8 @@ class GSI1Index(GlobalSecondaryIndex):
         index_name = 'GSI1'
         projection = AllProjection()
 
-    gsi1pk = UnicodeAttribute(hash_key=True)
-    gsi1sk = UnicodeAttribute(range_key=True)
+    gsi1pk = UnicodeAttribute(hash_key=True, attr_name='GSI1PK')
+    gsi1sk = UnicodeAttribute(range_key=True, attr_name='GSI1SK')
 
 
 class GSI2Index(GlobalSecondaryIndex):
@@ -24,8 +24,8 @@ class GSI2Index(GlobalSecondaryIndex):
         index_name = 'GSI2'
         projection = AllProjection()
 
-    gsi2pk = UnicodeAttribute(hash_key=True)
-    gsi2sk = UnicodeAttribute(range_key=True)
+    gsi2pk = UnicodeAttribute(hash_key=True, attr_name='GSI2PK')
+    gsi2sk = UnicodeAttribute(range_key=True, attr_name='GSI2SK')
 
 
 class BadgeIssuance(BaseTableEntity, discriminator='BADGEISSUANCE'):
@@ -43,10 +43,10 @@ class BadgeIssuance(BaseTableEntity, discriminator='BADGEISSUANCE'):
     query_by_meetup_index = GSI1Index()
     query_by_email_issuance_index = GSI2Index()
 
-    gsi1pk = UnicodeAttribute(null=True)
-    gsi1sk = UnicodeAttribute(null=True)
-    gsi2pk = UnicodeAttribute(null=True)
-    gsi2sk = UnicodeAttribute(null=True)
+    gsi1pk = UnicodeAttribute(null=True, attr_name='GSI1PK')
+    gsi1sk = UnicodeAttribute(null=True, attr_name='GSI1SK')
+    gsi2pk = UnicodeAttribute(null=True, attr_name='GSI2PK')
+    gsi2sk = UnicodeAttribute(null=True, attr_name='GSI2SK')
 
     issuance_id = UnicodeAttribute(null=True)
     design_id = UnicodeAttribute(null=True)

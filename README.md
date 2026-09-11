@@ -78,8 +78,7 @@ flowchart TD
 │   ├── infrastructure/             # Infrastructure layer
 │   │   ├── db/                     # DynamoDB models and PynamoDB repositories
 │   │   │   ├── models/             # PynamoDB database table models
-│   │   │   ├── pynamo_repositories/# Concrete repository port implementations
-│   │   │   └── mock_dynamodb.py    # Local development table initialization
+│   │   │   └── pynamo_repositories/# Concrete repository port implementations
 │   │   └── storage/                # Concrete storage and CDN resolver adapters
 │   └── presentation/               # Presentation layer
 │       └── api/                    # FastAPI web presentation

@@ -14,7 +14,6 @@ from src.application.ports.use_cases.get_public_badge_designs_use_case_port impo
 from src.application.use_cases.get_public_badge_designs_use_case import (
     GetPublicBadgeDesignsUseCase,
 )
-from src.infrastructure.db.mock_dynamodb import ensure_mock_database
 from src.infrastructure.db.pynamo_repositories.pynamo_badge_design_repository import (
     PynamoBadgeDesignRepository,
 )
@@ -27,12 +26,9 @@ def get_badge_design_repository() -> BadgeDesignRepositoryPort:
     """
     Provide concrete BadgeDesignRepositoryPort implementation.
 
-    Initializes mock DynamoDB storage if table is not yet provisioned.
-
     :returns: Instance of PynamoBadgeDesignRepository.
     :rtype: BadgeDesignRepositoryPort
     """
-    ensure_mock_database()
     return PynamoBadgeDesignRepository()
 
 

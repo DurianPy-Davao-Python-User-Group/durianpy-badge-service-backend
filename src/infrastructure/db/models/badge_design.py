@@ -13,8 +13,8 @@ class GSI1Index(GlobalSecondaryIndex):
         index_name = 'GSI1'
         projection = AllProjection()
 
-    gsi1pk = UnicodeAttribute(hash_key=True)
-    gsi1sk = UnicodeAttribute(range_key=True)
+    gsi1pk = UnicodeAttribute(hash_key=True, attr_name='GSI1PK')
+    gsi1sk = UnicodeAttribute(range_key=True, attr_name='GSI1SK')
 
 
 class BadgeDesign(BaseTableEntity, discriminator='BADGEDESIGN'):
@@ -29,8 +29,8 @@ class BadgeDesign(BaseTableEntity, discriminator='BADGEDESIGN'):
 
     query_by_year_index = GSI1Index()
 
-    gsi1pk = UnicodeAttribute(null=True)
-    gsi1sk = UnicodeAttribute(null=True)
+    gsi1pk = UnicodeAttribute(null=True, attr_name='GSI1PK')
+    gsi1sk = UnicodeAttribute(null=True, attr_name='GSI1SK')
 
     design_id = UnicodeAttribute(null=True)
     meetup_id = UnicodeAttribute(null=True)

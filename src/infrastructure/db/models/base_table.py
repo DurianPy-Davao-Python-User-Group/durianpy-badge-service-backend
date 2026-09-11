@@ -24,11 +24,10 @@ class BaseTableEntity(Model, DurianPyAuditTableMixin):
     """Base PynamoDB table model for single-table DynamoDB design."""
 
     class Meta:
-        table_name = f'{settings.ENVIRONMENT.value}-{settings.APP_NAME}-main-table'
-
+        table_name = settings.DYNAMODB_MAIN_TABLE_NAME
         region = settings.REGION
         billing_mode = 'PAY_PER_REQUEST'
 
-    pk = UnicodeAttribute(hash_key=True)
-    sk = UnicodeAttribute(range_key=True)
+    pk = UnicodeAttribute(hash_key=True, attr_name='PK')
+    sk = UnicodeAttribute(range_key=True, attr_name='SK')
     cls = DiscriminatorAttribute()
