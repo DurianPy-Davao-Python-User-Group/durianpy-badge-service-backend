@@ -17,9 +17,11 @@ dependencies = [
 [dependency-groups]
 dev = [
     "boto3>=1.43.75",
+    "httpx2>=2.12.0",
     "moto>=5.2.2",
     "prek>=0.4.14",
     "pytest>=9.1.1",
+    "pytest-cov>=7.1.0",
     "ruff>=0.16.3",
     "ty>=0.0.73",
 ]
@@ -94,3 +96,22 @@ docstring-code-line-length = 20
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
+addopts = "--cov=src --cov-report=term-missing --cov-report=html --cov-fail-under=95"
+
+[tool.coverage.run]
+source = ["src"]
+branch = false
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 95
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "@abstractmethod",
+    "class .*\\bABC\\):",
+]

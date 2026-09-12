@@ -246,5 +246,5 @@ All contributions must include thorough automated unit tests located in `tests/u
 
 Run test suite locally:
 ```bash
-pytest
+just run-unit-test
 ```

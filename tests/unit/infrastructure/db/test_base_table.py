@@ -2,8 +2,15 @@
 
 from datetime import datetime, timezone
 
+from src.core.settings import settings
 from src.infrastructure.db.models.badge_design import BadgeDesign
 from src.infrastructure.db.models.base_table import BaseTableEntity
+
+
+def test_base_table_entity_table_name() -> None:
+    """Verify BaseTableEntity Meta table_name matches settings.DYNAMODB_MAIN_TABLE_NAME."""
+    assert BaseTableEntity.Meta.table_name == settings.DYNAMODB_MAIN_TABLE_NAME
+    assert BaseTableEntity.Meta.region == settings.REGION
 
 
 def test_base_table_entity_audit_attributes() -> None:

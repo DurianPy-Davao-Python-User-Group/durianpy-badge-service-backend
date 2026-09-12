@@ -9,7 +9,7 @@
 6. [AWS Authentication (AWS SSO)](#6-aws-authentication-aws-sso)
 7. [Developer Workflows](#7-developer-workflows)
 8. [Coding Conventions & Standards](#8-coding-conventions--standards)
-9. [Testing](#9-testing)
+9. [Testing & Code Coverage](#9-testing--code-coverage)
 10. [Deployment & Runtime](#10-deployment--runtime)
 
 
@@ -112,6 +112,13 @@ Development for this project is standardized through **Dev Containers** to ensur
 3. The container will build using `docker/local/Dockerfile` and automatically execute `uv sync --frozen` and `just prepare-pre-commit` during initialization.
 4. Host configuration directories (`~/.aws`, `~/.ssh`, `~/.gitconfig`) are automatically mounted into the container.
 
+> [!IMPORTANT]
+> **First and Foremost**: Before writing code or making commits, always ensure the git hooks are installed and initialized:
+> ```bash
+> just prepare-pre-commit
+> ```
+> This configures `pre-commit` (running `ruff` linting and formatting) and `commit-msg` (enforcing Conventional Commits) via `prek`.
+
 
 ## 6. AWS Authentication (AWS SSO)
 
@@ -129,9 +136,20 @@ Application settings are managed through `pydantic-settings` and loaded directly
 
 A `Justfile` is provided inside the Dev Container to streamline development tasks:
 
-### 7.1 Run Local Development Server
+### 7.1 First and Foremost: Install Pre-commit Hooks (Mandatory)
 
-Starts FastAPI with hot-reloading and automatic initialization of mock DynamoDB tables:
+> [!IMPORTANT]
+> **Run this command first before contributing code or making commits!**
+>
+> ```bash
+> just prepare-pre-commit
+> ```
+>
+> This initializes and installs the `pre-commit` and `commit-msg` git hooks using `prek`. These hooks automatically validate code formatting (`ruff format`), check lint rules (`ruff check`), and enforce [Conventional Commits](#86-conventional-commits) prior to every git commit.
+
+### 7.2 Run Local Development Server
+
+Starts FastAPI with hot-reloading:
 
 ```bash
 just run-local-api
@@ -139,7 +157,18 @@ just run-local-api
 
 The API will be accessible at `http://127.0.0.1:8000`. Interactive OpenAPI documentation is available at `http://127.0.0.1:8000/docs`. Port 8000 is forwarded from the Dev Container to the host.
 
-### 7.2 Code Formatting and Linting
+### 7.3 Run Unit Tests
+
+Execute the automated test suite with coverage enforcement ($\ge$ 95%):
+
+```bash
+just run-unit-test
+```
+
+Running this command automatically generates an interactive HTML coverage report stored in `htmlcov/index.html`.
+
+
+### 7.4 Code Formatting and Linting
 
 This project uses `ruff` for linting and code formatting:
 
@@ -154,7 +183,7 @@ uv run ruff check .
 uv run ruff check --fix .
 ```
 
-### 7.3 Type Checking
+### 7.5 Type Checking
 
 Type checking is managed via `ty`:
 
@@ -162,13 +191,7 @@ Type checking is managed via `ty`:
 uv run ty
 ```
 
-### 7.4 Pre-commit Hooks
 
-Ensure Git pre-commit hooks are active:
-
-```bash
-just prepare-pre-commit
-```
 
 
 ## 8. Coding Conventions & Standards
@@ -209,21 +232,30 @@ All Git commit messages must strictly adhere to the [Conventional Commits specif
 - **Style**: Use concise, imperative lowercase descriptions without trailing periods. Commits are validated via `prek` pre-commit hooks.
 
 
-## 9. Testing
+## 9. Testing & Code Coverage
 
 The test suite is built on `pytest` and `moto` (mocking AWS DynamoDB). Tests are categorized under `tests/unit/`:
 
+- `tests/unit/application/`: Use case business logic, DTO mapping, and abstract port contract tests.
+- `tests/unit/core/`: Settings, logging singleton, audit attribution, and execution decorator tests.
 - `tests/unit/domain/`: Domain model invariants and exception structures.
-- `tests/unit/application/use_cases/`: Use case business logic and DTO mapping with mocked ports.
-- `tests/unit/infrastructure/db/`: DynamoDB transactions and error handling using `moto`.
-- `tests/unit/infrastructure/storage/`: Media URL resolution and path validation.
-- `tests/unit/presentation/api/`: FastAPI route handling, status codes, dependency injection, and exception sanitization via `TestClient`.
+- `tests/unit/infrastructure/`: DynamoDB repository transactions and CloudFront media resolver tests.
+- `tests/unit/presentation/`: FastAPI routes, HTTP status codes, Swagger Basic Auth, Mangum Lambda adapter, and exception handlers via `TestClient`.
 
 Run the automated test suite inside the Dev Container:
 
 ```bash
-uv run pytest
+just run-unit-test
 ```
+
+### Coverage Enforcement & HTML Report
+- **Enforced Threshold**: The test suite enforces a strict minimum coverage threshold of **$\ge$ 95%** (configured via `fail_under = 95` in `pyproject.toml`). The project currently achieves **99.49%** test coverage across all layers.
+- **HTML Coverage Report**: Every test run automatically generates a line-by-line interactive HTML coverage report stored in the **`htmlcov/`** directory:
+  ```
+  htmlcov/index.html
+  ```
+
+
 
 ## 10. Deployment & Runtime
 

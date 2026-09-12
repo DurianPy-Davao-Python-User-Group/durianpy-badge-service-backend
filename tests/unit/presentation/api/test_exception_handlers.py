@@ -44,7 +44,11 @@ def test_domain_exception_handlers_translation() -> None:
 
     @test_app.get('/http-error')
     def http_error_route():
-        raise HTTPException(status_code=403, detail='Forbidden access.')
+        raise HTTPException(
+            status_code=403,
+            detail='Forbidden access.',
+            headers={'X-Custom-Header': 'test-header'},
+        )
 
     @test_app.get('/unhandled-crash')
     def unhandled_crash_route():
@@ -81,11 +85,12 @@ def test_domain_exception_handlers_translation() -> None:
     assert res_400.status_code == 400
     assert res_400.json()['error']['code'] == 'DomainError'
 
-    # 6. HTTP Exception (403)
+    # 6. HTTP Exception (403 with headers)
     res_http = client.get('/http-error')
     assert res_http.status_code == 403
     assert res_http.json()['error']['code'] == 'HTTP_EXCEPTION'
     assert res_http.json()['error']['message'] == 'Forbidden access.'
+    assert res_http.headers['x-custom-header'] == 'test-header'
 
     # 7. Unhandled Unexpected Exception (500, no stack trace in response)
     res_crash = client.get('/unhandled-crash')

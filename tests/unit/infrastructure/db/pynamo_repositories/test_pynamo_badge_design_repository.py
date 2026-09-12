@@ -189,3 +189,77 @@ def test_moto_query_public_catalog_raises_domain_exception_on_db_error(
             badge_design_repository.query_public_catalog(year='2026')
 
         assert 'Failed to query public catalog from DynamoDB' in str(exc_info.value)
+
+
+def test_moto_create_design_unexpected_exception(
+    badge_design_repository: PynamoBadgeDesignRepository,
+) -> None:
+    """Verify create_design translates generic unexpected errors into BadgeDesignCreationError."""
+    meetup = MeetupDetailDomainModel(meetup_id='m-1')
+    design = BadgeDesignDomainModel(
+        design_id='d-1',
+        name='Test',
+        storage_path='path',
+        role='participant',
+        meetup_detail=meetup,
+    )
+    with patch('src.infrastructure.db.pynamo_repositories.pynamo_badge_design_repository.TransactWrite') as mock_tw:
+        mock_tw.side_effect = RuntimeError('Unexpected memory failure')
+        with pytest.raises(BadgeDesignCreationError) as exc_info:
+            badge_design_repository.create_design(
+                design=design,
+                year='2026',
+                iso_date='2026-01-01',
+                created_by='user',
+            )
+
+        assert 'Unexpected error creating badge design' in str(exc_info.value)
+
+
+def test_moto_create_design_reraises_existing_creation_error(
+    badge_design_repository: PynamoBadgeDesignRepository,
+) -> None:
+    """Verify create_design re-raises existing BadgeDesignCreationError untouched."""
+    meetup = MeetupDetailDomainModel(meetup_id='m-1')
+    design = BadgeDesignDomainModel(
+        design_id='d-1',
+        name='Test',
+        storage_path='path',
+        role='participant',
+        meetup_detail=meetup,
+    )
+    with patch('src.infrastructure.db.pynamo_repositories.pynamo_badge_design_repository.TransactWrite') as mock_tw:
+        mock_tw.side_effect = BadgeDesignCreationError('Pre-existing creation error')
+        with pytest.raises(BadgeDesignCreationError) as exc_info:
+            badge_design_repository.create_design(
+                design=design,
+                year='2026',
+                iso_date='2026-01-01',
+                created_by='user',
+            )
+
+        assert 'Pre-existing creation error' in str(exc_info.value)
+
+
+def test_moto_query_public_catalog_unexpected_exception(
+    badge_design_repository: PynamoBadgeDesignRepository,
+) -> None:
+    """Verify query_public_catalog translates generic unexpected errors into BadgeDesignQueryError."""
+    with patch.object(BadgeDesign.query_by_year_index, 'query') as mock_query:
+        mock_query.side_effect = RuntimeError('Unexpected socket failure')
+        with pytest.raises(BadgeDesignQueryError) as exc_info:
+            badge_design_repository.query_public_catalog(year='2026')
+
+        assert 'Unexpected error querying public catalog' in str(exc_info.value)
+
+
+def test_moto_query_public_catalog_reraises_existing_query_error(
+    badge_design_repository: PynamoBadgeDesignRepository,
+) -> None:
+    """Verify query_public_catalog re-raises existing BadgeDesignQueryError untouched."""
+    with patch.object(BadgeDesign.query_by_year_index, 'query') as mock_query:
+        mock_query.side_effect = BadgeDesignQueryError('Pre-existing query error')
+        with pytest.raises(BadgeDesignQueryError) as exc_info:
+            badge_design_repository.query_public_catalog(year='2026')
+
+        assert 'Pre-existing query error' in str(exc_info.value)

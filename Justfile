@@ -1,11 +1,15 @@
 default:
     @just --list
 
+# Initialize and install git pre-commit and commit-msg hooks (run this first and foremost)
+prepare-pre-commit:
+    uv run prek install --hook-type pre-commit --hook-type commit-msg --prepare-hooks
+
 run-local-api:
     PYTHONPATH=. uv run fastapi dev src/presentation/api/main.py
 
-prepare-pre-commit:
-    uv run prek install --hook-type pre-commit --hook-type commit-msg --prepare-hooks
+run-unit-test:
+    uv run pytest
 
 generate-env stage="dev":
     @rm -f .env

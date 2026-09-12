@@ -4,8 +4,41 @@ from fastapi.testclient import TestClient
 from moto import mock_aws
 
 from src.core.settings import settings
+from src.domain.models.badge_design import BadgeDesignDomainModel
+from src.domain.models.meetup_detail import MeetupDetailDomainModel
 from src.infrastructure.db.models.badge_design import BadgeDesign
+from src.infrastructure.db.pynamo_repositories.pynamo_badge_design_repository import (
+    PynamoBadgeDesignRepository,
+)
 from src.presentation.api.main import app
+
+
+def _seed_sample_badge_designs(repository: PynamoBadgeDesignRepository) -> None:
+    """
+    Seed sample badge designs into the test DynamoDB table for catalog testing.
+
+    :param repository: Badge design repository instance.
+    :type repository: PynamoBadgeDesignRepository
+    """
+    sample_design = BadgeDesignDomainModel(
+        design_id='1f88efbc-166e-4775-b985-e3d517c2a71f',
+        name='April Participant Badge',
+        storage_path='designs/9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d/badge_artwork.webp',
+        role='participant',
+        meetup_detail=MeetupDetailDomainModel(
+            meetup_id='m-april-2026',
+            name='DurianPy April Meetup',
+            date='2026-04-24T14:50:00Z',
+            venue='DevHub Davao',
+        ),
+    )
+
+    repository.create_design(
+        design=sample_design,
+        year='2026',
+        iso_date='2026-04-24T14:50:00Z',
+        created_by='system_seeder',
+    )
 
 
 def test_get_public_badge_designs_endpoint_returns_catalog() -> None:
@@ -17,6 +50,7 @@ def test_get_public_badge_designs_endpoint_returns_catalog() -> None:
                 write_capacity_units=1,
                 wait=True,
             )
+            _seed_sample_badge_designs(PynamoBadgeDesignRepository())
 
         client = TestClient(app)
         response = client.get('/api/public/designs')
@@ -56,6 +90,7 @@ def test_get_public_badge_designs_endpoint_with_year_query() -> None:
                 write_capacity_units=1,
                 wait=True,
             )
+            _seed_sample_badge_designs(PynamoBadgeDesignRepository())
 
         client = TestClient(app)
         response = client.get('/api/public/designs?year=2026')

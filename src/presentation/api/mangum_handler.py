@@ -1,11 +1,17 @@
 """AWS Lambda handler entrypoint integrating Mangum ASGI adapter and Lambda Warmer."""
 
+import asyncio
 from typing import Any
 
 import lambdawarmer
 from mangum import Mangum
 
 from src.presentation.api.main import app
+
+try:
+    asyncio.get_running_loop()
+except RuntimeError:
+    asyncio.set_event_loop(asyncio.new_event_loop())
 
 mangum_handler = Mangum(app, lifespan='off')
 
