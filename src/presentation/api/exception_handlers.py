@@ -9,6 +9,10 @@ from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from src.core.logging import logger
+from src.domain.exceptions.auth_exceptions import (
+    AuthenticationError,
+    AuthorizationError,
+)
 from src.domain.exceptions.base_exceptions import (
     DomainError,
     EntityNotFoundError,
@@ -29,6 +33,34 @@ def register_domain_exception_handlers(app: FastAPI) -> None:
     :param app: FastAPI application instance.
     :type app: FastAPI
     """
+
+    @app.exception_handler(AuthenticationError)
+    async def authentication_error_handler(request: Request, exc: AuthenticationError) -> JSONResponse:
+        logger.warning(f'Authentication failure on {request.method} {request.url.path}: {exc.message}')
+        return JSONResponse(
+            status_code=HTTPStatus.UNAUTHORIZED.value,
+            content={
+                'error': {
+                    'code': exc.code,
+                    'message': exc.message,
+                }
+            },
+            headers={'WWW-Authenticate': 'Bearer error="invalid_token"'},
+        )
+
+    @app.exception_handler(AuthorizationError)
+    async def authorization_error_handler(request: Request, exc: AuthorizationError) -> JSONResponse:
+        logger.warning(f'Authorization failure on {request.method} {request.url.path}: {exc.message}')
+        return JSONResponse(
+            status_code=HTTPStatus.FORBIDDEN.value,
+            content={
+                'error': {
+                    'code': exc.code,
+                    'message': exc.message,
+                }
+            },
+            headers={'WWW-Authenticate': 'Bearer error="insufficient_scope"'},
+        )
 
     @app.exception_handler(EntityNotFoundError)
     async def entity_not_found_handler(request: Request, exc: EntityNotFoundError) -> JSONResponse:

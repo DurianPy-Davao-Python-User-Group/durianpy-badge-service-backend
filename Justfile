@@ -14,3 +14,5 @@ run-unit-test:
 generate-env stage="dev":
     @rm -f .env
     @echo "CLOUDFRONT_URL=$(aws ssm get-parameter --name /durianpy-badge-system/backend/cloudfront-url-{{stage}} --region ap-southeast-1 --query Parameter.Value --output text)" >> .env
+    @echo "COGNITO_USER_POOL_ID=$(aws ssm get-parameter --name /durianpy-badge-system/backend/cognito-user-pool-id-{{stage}} --region ap-southeast-1 --with-decryption --query Parameter.Value --output text)" >> .env
+    @echo "COGNITO_APP_CLIENT_ID=$(aws ssm get-parameter --name /durianpy-badge-system/backend/cognito-app-client-id-{{stage}} --region ap-southeast-1 --with-decryption --query Parameter.Value --output text)" >> .env

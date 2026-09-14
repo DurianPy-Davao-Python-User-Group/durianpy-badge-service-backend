@@ -36,11 +36,33 @@ class Settings(BaseSettings):
     REGION: str = 'ap-southeast-1'
     CLOUDFRONT_URL: str = ''
     DYNAMODB_MAIN_TABLE_NAME: str = ''
+    COGNITO_USER_POOL_ID: str = ''
+    COGNITO_APP_CLIENT_ID: str = ''
 
     # Swagger Documentation Basic Auth Settings
     ENABLE_SWAGGER_BASIC_AUTH: bool = False
     SWAGGER_BASIC_AUTH_USERNAME: str = ''
     SWAGGER_BASIC_AUTH_PASSWORD: str = ''
+
+    @property
+    def cognito_issuer(self) -> str:
+        """
+        Get the expected Cognito JWT issuer URL.
+
+        :returns: Formatted Cognito issuer URL.
+        :rtype: str
+        """
+        return f'https://cognito-idp.{self.REGION}.amazonaws.com/{self.COGNITO_USER_POOL_ID}'
+
+    @property
+    def cognito_jwks_url(self) -> str:
+        """
+        Get the Cognito User Pool JWKS endpoint URL.
+
+        :returns: Formatted Cognito JWKS URL.
+        :rtype: str
+        """
+        return f'https://cognito-idp.{self.REGION}.amazonaws.com/{self.COGNITO_USER_POOL_ID}/.well-known/jwks.json'
 
     @property
     def is_local(self) -> bool:

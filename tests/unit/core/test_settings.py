@@ -9,6 +9,7 @@ from src.core.settings import Environment, LogLevel, Settings
 def test_settings_default_values() -> None:
     """Verify Settings initializes with default values."""
     s = Settings(
+        _env_file=None,
         APP_NAME='test-app',
         ENVIRONMENT=Environment.DEVELOPMENT,
         LOG_LEVEL=LogLevel.INFO,
@@ -24,6 +25,10 @@ def test_settings_default_values() -> None:
     assert s.ENABLE_SWAGGER_BASIC_AUTH is False
     assert s.SWAGGER_BASIC_AUTH_USERNAME == ''
     assert s.SWAGGER_BASIC_AUTH_PASSWORD == ''
+    assert s.COGNITO_USER_POOL_ID == ''
+    assert s.COGNITO_APP_CLIENT_ID == ''
+    assert s.cognito_issuer == 'https://cognito-idp.ap-southeast-1.amazonaws.com/'
+    assert s.cognito_jwks_url == 'https://cognito-idp.ap-southeast-1.amazonaws.com//.well-known/jwks.json'
     assert s.is_local is True
 
 
@@ -33,21 +38,31 @@ def test_settings_environment_override() -> None:
         'APP_NAME': 'custom-app',
         'ENVIRONMENT': 'prod',
         'LOG_LEVEL': 'warning',
+        'REGION': 'us-east-1',
         'CLOUDFRONT_URL': 'https://custom-cdn.example.com',
         'ENABLE_SWAGGER_BASIC_AUTH': 'true',
         'SWAGGER_BASIC_AUTH_USERNAME': 'admin',
         'SWAGGER_BASIC_AUTH_PASSWORD': 'secret-password',
+        'COGNITO_USER_POOL_ID': 'ap-southeast-1_TestPool',
+        'COGNITO_APP_CLIENT_ID': 'test-client-id-123',
     }
     with patch.dict(os.environ, env_vars):
-        s = Settings()
+        s = Settings(_env_file=None)
         assert s.APP_NAME == 'custom-app'
         assert s.ENVIRONMENT == Environment.PRODUCTION
         assert s.LOG_LEVEL == LogLevel.WARNING
+        assert s.REGION == 'us-east-1'
         assert s.CLOUDFRONT_URL == 'https://custom-cdn.example.com'
         assert s.DYNAMODB_MAIN_TABLE_NAME == 'prod-custom-app-main'
         assert s.ENABLE_SWAGGER_BASIC_AUTH is True
         assert s.SWAGGER_BASIC_AUTH_USERNAME == 'admin'
         assert s.SWAGGER_BASIC_AUTH_PASSWORD == 'secret-password'
+        assert s.COGNITO_USER_POOL_ID == 'ap-southeast-1_TestPool'
+        assert s.COGNITO_APP_CLIENT_ID == 'test-client-id-123'
+        assert s.cognito_issuer == 'https://cognito-idp.us-east-1.amazonaws.com/ap-southeast-1_TestPool'
+        assert s.cognito_jwks_url == (
+            'https://cognito-idp.us-east-1.amazonaws.com/ap-southeast-1_TestPool/.well-known/jwks.json'
+        )
 
 
 def test_settings_dynamodb_table_name_explicit_override() -> None:

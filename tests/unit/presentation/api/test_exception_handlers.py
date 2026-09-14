@@ -3,6 +3,10 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
 
+from src.domain.exceptions.auth_exceptions import (
+    AuthenticationError,
+    AuthorizationError,
+)
 from src.domain.exceptions.badge_design_exceptions import (
     BadgeDesignNotFoundError,
     BadgeDesignQueryError,
@@ -41,6 +45,14 @@ def test_domain_exception_handlers_translation() -> None:
     @test_app.get('/domain-error')
     def domain_error_route():
         raise DomainError('Generic business rule failure.')
+
+    @test_app.get('/authn-error')
+    def authn_error_route():
+        raise AuthenticationError('Token signature invalid.')
+
+    @test_app.get('/authz-error')
+    def authz_error_route():
+        raise AuthorizationError('Insufficient permissions.')
 
     @test_app.get('/http-error')
     def http_error_route():
@@ -92,7 +104,21 @@ def test_domain_exception_handlers_translation() -> None:
     assert res_http.json()['error']['message'] == 'Forbidden access.'
     assert res_http.headers['x-custom-header'] == 'test-header'
 
-    # 7. Unhandled Unexpected Exception (500, no stack trace in response)
+    # 7. Authentication Error (401 with WWW-Authenticate header)
+    res_authn = client.get('/authn-error')
+    assert res_authn.status_code == 401
+    assert res_authn.json()['error']['code'] == 'AUTHENTICATION_FAILED'
+    assert res_authn.json()['error']['message'] == 'Token signature invalid.'
+    assert 'invalid_token' in res_authn.headers['www-authenticate']
+
+    # 8. Authorization Error (403 with WWW-Authenticate header)
+    res_authz = client.get('/authz-error')
+    assert res_authz.status_code == 403
+    assert res_authz.json()['error']['code'] == 'INSUFFICIENT_PERMISSIONS'
+    assert res_authz.json()['error']['message'] == 'Insufficient permissions.'
+    assert 'insufficient_scope' in res_authz.headers['www-authenticate']
+
+    # 9. Unhandled Unexpected Exception (500, no stack trace in response)
     res_crash = client.get('/unhandled-crash')
     assert res_crash.status_code == 500
     body = res_crash.json()
