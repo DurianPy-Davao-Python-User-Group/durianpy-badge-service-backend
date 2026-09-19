@@ -1,3 +1,6 @@
+export AWS_REGION := "ap-southeast-1"
+export AWS_DEFAULT_REGION := "ap-southeast-1"
+
 default:
     @just --list
 
@@ -16,3 +19,13 @@ generate-env stage="dev":
     @echo "CLOUDFRONT_URL=$(aws ssm get-parameter --name /durianpy-badge-system/backend/cloudfront-url-{{stage}} --region ap-southeast-1 --query Parameter.Value --output text)" >> .env
     @echo "COGNITO_USER_POOL_ID=$(aws ssm get-parameter --name /durianpy-badge-system/backend/cognito-user-pool-id-{{stage}} --region ap-southeast-1 --with-decryption --query Parameter.Value --output text)" >> .env
     @echo "COGNITO_APP_CLIENT_ID=$(aws ssm get-parameter --name /durianpy-badge-system/backend/cognito-app-client-id-{{stage}} --region ap-southeast-1 --with-decryption --query Parameter.Value --output text)" >> .env
+
+# Preview Terraform deployment plan for target stage (defaults to dev)
+plan-deploy stage="dev":
+    terraform -chdir=terraform init
+    terraform -chdir=terraform plan -var="environment={{stage}}"
+
+# Deploy backend application and infrastructure via Terraform to target stage (defaults to dev)
+deploy stage="dev":
+    terraform -chdir=terraform init
+    terraform -chdir=terraform apply -var="environment={{stage}}"
