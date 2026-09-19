@@ -38,6 +38,8 @@ class Settings(BaseSettings):
     DYNAMODB_MAIN_TABLE_NAME: str = ''
     COGNITO_USER_POOL_ID: str = ''
     COGNITO_APP_CLIENT_ID: str = ''
+    S3_BUCKET_NAME: str = ''
+    S3_PRESIGN_EXPIRATION_SECONDS: int = 3600
 
     # Swagger Documentation Basic Auth Settings
     ENABLE_SWAGGER_BASIC_AUTH: bool = False
@@ -86,29 +88,6 @@ class Settings(BaseSettings):
         env_file_encoding='utf-8',
         extra='ignore',
     )
-
-    # Uncomment when pydantic-settings d26fc0c is released to support
-    # AWS Systems Manager Parameter Store as a settings source.
-    # @classmethod
-    # def settings_customise_sources(
-    #     cls,
-    #     settings_cls: type[BaseSettings],
-    #     init_settings: PydanticBaseSettingsSource,
-    #     env_settings: PydanticBaseSettingsSource,
-    #     dotenv_settings: PydanticBaseSettingsSource,
-    #     file_secret_settings: PydanticBaseSettingsSource,
-    # ) -> tuple[PydanticBaseSettingsSource, ...]:
-    #     aws_systems_manager_settings = AWSSystemsManagerSettingsSource(
-    #         settings_cls,
-    #         ssm_path='/durianpy-badge-system/backend/',
-    #     )
-    #     return (
-    #         init_settings,
-    #         aws_systems_manager_settings,
-    #         env_settings,
-    #         dotenv_settings,
-    #         file_secret_settings,
-    #     )
 
 
 settings = Settings()

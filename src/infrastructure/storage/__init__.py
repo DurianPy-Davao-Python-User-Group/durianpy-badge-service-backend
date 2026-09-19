@@ -1,14 +1,11 @@
-"""
-External storage infrastructure package.
+"""Storage infrastructure adapters package."""
 
-Purpose
--------
-Implements file and object storage interfaces (e.g., AWS S3, cloud blob
-storage, local disk storage adapters) declared in application ports.
+from src.infrastructure.storage.cloudfront_media_url_resolver import (
+    CloudFrontMediaUrlResolver,
+)
+from src.infrastructure.storage.s3_storage_adapter import S3StorageAdapter
 
-Allowed File Types
-------------------
-- Object storage adapter classes (e.g., AWS S3 integration).
-- Local filesystem storage adapter implementations.
-- File upload/download stream helper modules.
-"""
+__all__ = [
+    'CloudFrontMediaUrlResolver',
+    'S3StorageAdapter',
+]
