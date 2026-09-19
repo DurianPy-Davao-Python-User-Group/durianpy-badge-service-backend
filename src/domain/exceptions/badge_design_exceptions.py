@@ -42,3 +42,9 @@ class MediaResolutionError(StorageServiceError, BadgeDesignError):
     """Exception raised when resolving asset storage paths to public URLs fails."""
 
     pass
+
+
+class StoragePresignError(StorageServiceError, BadgeDesignError):
+    """Exception raised when generating a pre-signed upload URL fails."""
+
+    pass

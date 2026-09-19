@@ -140,3 +140,31 @@ def test_media_url_resolver_port_contract() -> None:
 
     resolver = ConcreteResolver()
     assert resolver.resolve_url('path/to/img.webp') == 'https://cdn.example.com/path/to/img.webp'
+
+
+def test_badge_storage_port_contract() -> None:
+    """
+    Verify BadgeStoragePort cannot be instantiated directly.
+
+    :returns: None
+    """
+    from src.application.ports.storage.badge_storage_port import BadgeStoragePort
+
+    with pytest.raises(TypeError):
+        BadgeStoragePort()  # type: ignore[abstract]
+
+    class ConcreteBadgeStorage(BadgeStoragePort):
+        def generate_presigned_upload_url(
+            self,
+            storage_path: str,
+            content_type: str,
+            expires_in: int = 3600,
+        ) -> str:
+            super().generate_presigned_upload_url(storage_path, content_type, expires_in)
+            return f'https://s3.example.com/{storage_path}'
+
+    storage = ConcreteBadgeStorage()
+    assert (
+        storage.generate_presigned_upload_url('path/to/img.png', 'image/png')
+        == 'https://s3.example.com/path/to/img.png'
+    )

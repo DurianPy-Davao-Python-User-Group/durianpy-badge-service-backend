@@ -12,6 +12,7 @@ from src.domain.exceptions.badge_design_exceptions import (
     BadgeDesignQueryError,
     BadgeDesignRepositoryError,
     MediaResolutionError,
+    StoragePresignError,
 )
 from src.domain.exceptions.base_exceptions import (
     DomainError,
@@ -36,4 +37,5 @@ __all__ = [
     'BadgeDesignCreationError',
     'BadgeDesignQueryError',
     'MediaResolutionError',
+    'StoragePresignError',
 ]
