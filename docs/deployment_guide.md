@@ -16,13 +16,22 @@ Before deploying, ensure you have the following tools installed and accounts pro
 
 ## 2. Step 1: Log in to Terraform (HCP Terraform)
 
-All developers deploying infrastructure will be invited to the DurianPy organization on HCP Terraform (formerly Terraform Cloud). Logging in links your local Terraform CLI to the remote workspace.
+All developers deploying infrastructure will be invited to the DurianPy organization on HCP Terraform (formerly Terraform Cloud). The project uses HCP Terraform as a centralized remote state backend with automatic state locking to prevent concurrent deployment drift.
 
-### 2.1 Accept Organization Invitation
+### 2.1 Workspace Configuration
+- **Organization**: `durianpy`
+- **Workspace Prefix**: `durianpy-badge-system-backend-`
+- **Workspace Mapping**:
+  - `dev` stage maps to `durianpy-badge-system-backend-dev`
+  - `prod` stage maps to `durianpy-badge-system-backend-prod`
+  - Any `<env>` stage maps to `durianpy-badge-system-backend-<env>`
+- **Execution Mode**: **Local** (`Settings > General > Execution Mode > Local`). Each workspace in HCP Terraform must be set to Local execution mode because deployments run locally on developer workstations utilizing AWS SSO temporary credentials and vendoring Lambda dependencies via `uv`.
+
+### 2.2 Accept Organization Invitation
 1. Check your email inbox for an invitation from HCP Terraform / Terraform Cloud to join the DurianPy organization.
 2. Follow the email link to accept the invitation and set up your account if you do not already have one.
 
-### 2.2 Authenticate CLI via `terraform login`
+### 2.3 Authenticate CLI via `terraform login`
 Run the following command in your terminal:
 
 ```bash
@@ -42,6 +51,35 @@ You will see:
 ```text
 Success! Terraform has obtained and saved an API token.
 ```
+
+### 2.4 Select or Create Environment Workspace (Manual Setup)
+Workspaces are managed manually via the Terraform CLI. When working with or switching target environments:
+
+```bash
+terraform -chdir=terraform init
+terraform -chdir=terraform workspace select -or-create dev
+```
+
+For other environments such as `prod`:
+```bash
+terraform -chdir=terraform workspace select -or-create prod
+```
+
+Ensure your active workspace matches your intended deployment environment before running `just plan-deploy` or `just deploy`.
+
+### 2.5 Migrate Local State (One-time for Existing State)
+If you have an existing local `terraform.tfstate` file for `dev`:
+1. Ensure the active workspace is `dev`:
+   ```bash
+   terraform -chdir=terraform workspace select -or-create dev
+   ```
+2. Initialize and migrate:
+   ```bash
+   terraform -chdir=terraform init -migrate-state
+   ```
+3. When prompted `Do you want to copy existing state to the new backend?`, type `yes`. Terraform transfers state to `durianpy-badge-system-backend-dev`.
+
+
 
 
 ## 3. Step 2: Log in to AWS via AWS SSO

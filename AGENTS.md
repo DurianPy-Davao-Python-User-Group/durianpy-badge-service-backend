@@ -2,7 +2,6 @@
 
 Welcome to the **DurianPy Badge System Backend**. This document establishes the architectural principles, global coding conventions, layer-by-layer modification workflows, dependency injection wiring rules, event logging standards, sensitive data masking rules, and testing requirements for human engineers and AI agents contributing to this codebase.
 
----
 
 ## 1. Architectural Architecture & Principles
 
@@ -37,7 +36,6 @@ This codebase strictly follows **Clean Architecture (Ports and Adapters)**:
    - Resolving URLs is delegated to outbound ports (e.g., `MediaUrlResolverPort`).
 3. **Use Case Ports**: All use cases must implement an explicit use case port inheriting from `UseCasePort` with `execute(*args, **kwargs)` as the public execution contract.
 
----
 
 ## 2. Global Conventions & Standards
 
@@ -73,7 +71,6 @@ All git commit messages must follow the [Conventional Commits](https://www.conve
   - `ci`: CI/CD configuration files and automation scripts.
 - **Rules**: Use lowercase, imperative mood in the description (e.g. `feat(catalog): add year filter to public badge discovery`), without ending punctuation. Enforced automatically by `commit-msg` git hooks.
 
----
 
 ## 3. Event Logging, State Tracking & Sensitive Data Masking
 
@@ -105,7 +102,6 @@ logger.debug(
 
 `mask_string(value, visible_prefix=2, visible_suffix=2, mask_char='*')` preserves leading and trailing characters while obscuring sensitive middle contents (e.g., `user_admin_2026` $\rightarrow$ `us*************26`).
 
----
 
 ## 4. Domain Boundaries & Exception Handling
 
@@ -142,7 +138,6 @@ logger.debug(
   }
   ```
 
----
 
 ## 5. Step-by-Step Feature Implementation Guide
 
@@ -179,7 +174,6 @@ When implementing a new feature or API endpoint, modify files in the following s
    └── tests/unit/
 ```
 
----
 
 ## 6. Dependency Injection (DI) Wiring Guide
 
@@ -246,7 +240,7 @@ FastAPI dependency injection providers in `src/presentation/api/dependencies/aut
 
 | Dependency | Purpose | Injected Type / Return | Throws on Failure |
 |---|---|---|---|
-| `get_token_verifier()` | Resolves the concrete `TokenVerifierPort` adapter. | `TokenVerifierPort` | — |
+| `get_token_verifier()` | Resolves the concrete `TokenVerifierPort` adapter. | `TokenVerifierPort` | None |
 | `get_current_user` | Validates Cognito Bearer access token signature against User Pool JWKS and claims (`token_use == 'access'`, `client_id`, `iss`). | `AuthenticatedUser` | `401 Unauthorized` |
 | `require_admin` | Requires user to have administrator privileges (`admin`, `superadmin`, or `super_admin`). | `AuthenticatedUser` | `401 Unauthorized` / `403 Forbidden` |
 | `require_superadmin` | Requires user to have superadmin privileges (`superadmin` or `super_admin`). | `AuthenticatedUser` | `401 Unauthorized` / `403 Forbidden` |
@@ -336,7 +330,6 @@ def test_protected_route_with_mock_user(client: TestClient) -> None:
     assert response.status_code == 200
 ```
 
----
 
 ## 7. Testing Requirements
 

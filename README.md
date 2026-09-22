@@ -420,7 +420,7 @@ just run-unit-test
 
 - **Serverless Runtime**: Designed for AWS Lambda using the `Mangum` ASGI adapter ([`src/presentation/api/mangum_handler.py`](src/presentation/api/mangum_handler.py)).
 - **Cold Start Optimization**: Integrated with `lambda-warmer-py` and an EventBridge warmer rule to support keep-alive pings.
-- **Infrastructure as Code**: Provisioned and managed using Terraform (`terraform/`).
+- **Infrastructure as Code**: Provisioned and managed using Terraform (`terraform/`) with state hosted remotely on HCP Terraform (`durianpy-badge-system-backend-{env}` workspaces) for central locking and concurrency control.
 
 ### 11.1 Deploying to Dev for Cloud Testing
 
@@ -435,6 +435,7 @@ For full setup and troubleshooting details, see the [AWS Dev Deployment Guide](d
    ```bash
    terraform login
    ```
+   Remote state locking and sync are handled automatically per stage via `durianpy-badge-system-backend-{env}` workspaces.
 
 2. **Log in to AWS via AWS SSO**:
    ```bash
