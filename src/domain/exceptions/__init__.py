@@ -24,6 +24,7 @@ from src.domain.exceptions.base_exceptions import (
 from src.domain.exceptions.techtix_exceptions import (
     TechTixEventNotFoundError,
     TechTixGatewayError,
+    TechTixGatewayTimeout,
 )
 
 __all__ = [
@@ -44,4 +45,5 @@ __all__ = [
     'StoragePresignError',
     'TechTixEventNotFoundError',
     'TechTixGatewayError',
+    'TechTixGatewayTimeout',
 ]
