@@ -2,17 +2,19 @@
 
 from __future__ import annotations
 
+from http import HTTPStatus
 from typing import Optional
 
 import httpx
 
 from src.application.dtos.badge_design_dto import MeetupDetailDTO
 from src.application.ports.gateways.techtix_gateway_port import TechTixGatewayPort
-from src.core.logging import logger, mask_string
+from src.core.logging import logger
 from src.core.settings import settings
 from src.domain.exceptions.techtix_exceptions import (
     TechTixEventNotFoundError,
     TechTixGatewayError,
+    TechTixGatewayTimeout,
 )
 
 
@@ -41,7 +43,10 @@ class TechTixHttpGateway(TechTixGatewayPort):
         resolved_base_url = api_base_url or base_url or settings.TECHTIX_API_BASE_URL
         self.__api_base_url = resolved_base_url.rstrip('/')
         self.__api_key = api_key if api_key is not None else settings.TECHTIX_API_KEY
-        self.__client = client or httpx.Client(base_url=self.__api_base_url, timeout=10.0)
+        self.__client = client or httpx.Client(
+            base_url=self.__api_base_url,
+            timeout=10.0,
+        )
 
     def get_meetup_details(self, meetup_id: str) -> MeetupDetailDTO:
         """
@@ -52,32 +57,34 @@ class TechTixHttpGateway(TechTixGatewayPort):
         :returns: Essential meetup details mapped to a DTO.
         :rtype: MeetupDetailDTO
         :raises TechTixEventNotFoundError: If the event does not exist (404).
+        :raises TechTixGatewayTimeout: If the request to TechTix times out.
         :raises TechTixGatewayError: If communication with the gateway fails.
         """
         if not meetup_id or not isinstance(meetup_id, str):
             raise TechTixGatewayError('TechTix meetup identifier must be a non-empty string.')
 
-        url = f'/events/admin/{meetup_id}'
-        headers = {'Authorization': f'Bearer {self.__api_key}'}
+        url = f'/events/{meetup_id}'
 
         logger.info(
-            "Fetching TechTix meetup '%s' '%s' using auth header '%s'",
+            "Fetching TechTix meetup '%s''%s'",
             self.__api_base_url,
             url,
-            mask_string(headers['Authorization']),
         )
 
         try:
-            response = self.__client.get(url, headers=headers)
-        except (httpx.TimeoutException, httpx.NetworkError, httpx.HTTPError) as exc:
+            response = self.__client.get(url)
+        except httpx.TimeoutException as exc:
+            logger.error("TechTix meetup '%s' request timed out: %s", meetup_id, exc)
+            raise TechTixGatewayTimeout(f'TechTix request for meetup {meetup_id} timed out: {exc}') from exc
+        except (httpx.NetworkError, httpx.HTTPError) as exc:
             logger.error("TechTix meetup '%s' request failed: %s", meetup_id, exc)
             raise TechTixGatewayError(f'TechTix request for meetup {meetup_id} failed: {exc}') from exc
 
-        if response.status_code == 404:
+        if response.status_code == HTTPStatus.NOT_FOUND:
             logger.warning("TechTix meetup '%s' was not found.", meetup_id)
             raise TechTixEventNotFoundError(f'Event with entryId {meetup_id} does not exist.')
 
-        if 500 <= response.status_code < 600:
+        if HTTPStatus(response.status_code).is_server_error:
             logger.error(
                 "TechTix meetup '%s' returned server error %s.",
                 meetup_id,
@@ -85,7 +92,7 @@ class TechTixHttpGateway(TechTixGatewayPort):
             )
             raise TechTixGatewayError(f'TechTix gateway error for meetup {meetup_id}; status {response.status_code}.')
 
-        if response.status_code != 200:
+        if response.status_code != HTTPStatus.OK:
             logger.error(
                 "TechTix meetup '%s' returned unexpected HTTP status %s.",
                 meetup_id,

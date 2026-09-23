@@ -48,7 +48,7 @@ class Settings(BaseSettings):
 
     # TechTix API Settings
     TECHTIX_API_BASE_URL: str = 'https://api.techtix.org'
-    TECHTIX_API_KEY: str = ''
+    TECHTIX_API_KEY: str | None = None
 
     @property
     def cognito_issuer(self) -> str:
