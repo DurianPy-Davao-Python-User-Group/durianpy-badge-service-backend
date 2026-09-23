@@ -4,6 +4,8 @@ from typing import Any, Optional
 
 import pytest
 
+from src.application.dtos.badge_design_dto import MeetupDetailDTO
+from src.application.ports.gateways.techtix_gateway_port import TechTixGatewayPort
 from src.application.ports.repositories.badge_design_repository import (
     BadgeDesignRepositoryPort,
 )
@@ -81,6 +83,27 @@ def test_badge_issuance_repository_port_contract() -> None:
 
     instance = ConcreteIssuanceRepo()
     assert instance.query_user_portfolio('test@durianpy.org', '2026') == []
+
+
+def test_techtix_gateway_port_contract() -> None:
+    """Verify the TechTix gateway port defines the required contract."""
+    with pytest.raises(TypeError):
+        TechTixGatewayPort()  # type: ignore[abstract]
+
+    class ConcreteTechTixGateway(TechTixGatewayPort):
+        def get_meetup_details(self, meetup_id: str) -> MeetupDetailDTO:
+            super().get_meetup_details(meetup_id)
+            return MeetupDetailDTO(
+                meetup_id=meetup_id,
+                name='DurianPy September 2026 Meetup',
+                date='2026-09-26T18:00:00.000Z',
+                venue='Davao City Tech Hub',
+            )
+
+    gateway = ConcreteTechTixGateway()
+    meetup = gateway.get_meetup_details('evt-123')
+    assert meetup.meetup_id == 'evt-123'
+    assert meetup.name == 'DurianPy September 2026 Meetup'
 
 
 def test_badge_design_repository_port_contract() -> None:

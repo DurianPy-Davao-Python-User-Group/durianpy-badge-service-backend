@@ -21,6 +21,10 @@ from src.domain.exceptions.base_exceptions import (
     RepositoryError,
     StorageServiceError,
 )
+from src.domain.exceptions.techtix_exceptions import (
+    TechTixEventNotFoundError,
+    TechTixGatewayError,
+)
 
 __all__ = [
     'AuthError',
@@ -38,4 +42,6 @@ __all__ = [
     'BadgeDesignQueryError',
     'MediaResolutionError',
     'StoragePresignError',
+    'TechTixEventNotFoundError',
+    'TechTixGatewayError',
 ]

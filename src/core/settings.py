@@ -46,6 +46,10 @@ class Settings(BaseSettings):
     SWAGGER_BASIC_AUTH_USERNAME: str = ''
     SWAGGER_BASIC_AUTH_PASSWORD: str = ''
 
+    # TechTix API Settings
+    TECHTIX_API_BASE_URL: str = 'https://api.techtix.org'
+    TECHTIX_API_KEY: str = ''
+
     @property
     def cognito_issuer(self) -> str:
         """
