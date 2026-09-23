@@ -154,7 +154,7 @@ Once authenticated against AWS SSO, generate or refresh your local `.env` file w
 just generate-env dev
 ```
 
-This retrieves the CloudFront distribution URL, Cognito User Pool ID, and Cognito App Client ID for the `dev` stage, enabling your local development server (`just run-local-api`) and test verification scripts to connect to live dev cloud resources.
+This retrieves the CloudFront distribution URL, Cognito User Pool ID, Cognito App Client ID, and TechTix API base URL for the `dev` stage, enabling your local development server (`just run-local-api`) and test verification scripts to connect to live dev cloud resources.
 
 
 

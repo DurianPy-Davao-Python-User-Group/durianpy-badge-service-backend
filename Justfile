@@ -19,6 +19,7 @@ generate-env stage="dev":
     @echo "CLOUDFRONT_URL=$(aws ssm get-parameter --name /durianpy-badge-system/backend/cloudfront-url-{{ replace(replace(stage, 'stage=', ''), 'env=', '') }} --region ap-southeast-1 --query Parameter.Value --output text)" >> .env
     @echo "COGNITO_USER_POOL_ID=$(aws ssm get-parameter --name /durianpy-badge-system/backend/cognito-user-pool-id-{{ replace(replace(stage, 'stage=', ''), 'env=', '') }} --region ap-southeast-1 --with-decryption --query Parameter.Value --output text)" >> .env
     @echo "COGNITO_APP_CLIENT_ID=$(aws ssm get-parameter --name /durianpy-badge-system/backend/cognito-app-client-id-{{ replace(replace(stage, 'stage=', ''), 'env=', '') }} --region ap-southeast-1 --with-decryption --query Parameter.Value --output text)" >> .env
+    @echo "TECHTIX_API_BASE_URL=$(aws ssm get-parameter --name /durianpy-badge-system/backend/techtix-api-base-url-{{ replace(replace(stage, 'stage=', ''), 'env=', '') }} --region ap-southeast-1 --query Parameter.Value --output text)" >> .env
 
 # Build Lambda dependency layer if missing or manifests changed
 build-layer:

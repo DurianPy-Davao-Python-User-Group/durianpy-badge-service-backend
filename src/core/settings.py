@@ -47,7 +47,7 @@ class Settings(BaseSettings):
     SWAGGER_BASIC_AUTH_PASSWORD: str = ''
 
     # TechTix API Settings
-    TECHTIX_API_BASE_URL: str = 'https://api.techtix.org'
+    TECHTIX_API_BASE_URL: str = ''
     TECHTIX_API_KEY: str | None = None
 
     @property
@@ -81,10 +81,17 @@ class Settings(BaseSettings):
         return not bool(os.getenv('AWS_LAMBDA_FUNCTION_NAME'))
 
     @model_validator(mode='after')
-    def __set_default_table_name(self) -> 'Settings':
-        """Ensure DYNAMODB_MAIN_TABLE_NAME defaults to {env}-{app}-main if not explicitly configured."""
+    def __set_default_resource_names(self) -> 'Settings':
+        """
+        Ensure table and bucket names default based on environment if not explicitly configured.
+
+        :returns: Updated Settings instance.
+        :rtype: Settings
+        """
         if not self.DYNAMODB_MAIN_TABLE_NAME:
             self.DYNAMODB_MAIN_TABLE_NAME = f'{self.ENVIRONMENT.value}-{self.APP_NAME}-main'
+        if not self.S3_BUCKET_NAME:
+            self.S3_BUCKET_NAME = f'{self.ENVIRONMENT.value}-durianpy-badge-system-bucket'
         return self
 
     model_config = SettingsConfigDict(

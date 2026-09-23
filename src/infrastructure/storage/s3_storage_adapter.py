@@ -27,7 +27,7 @@ class S3StorageAdapter(BadgeStoragePort):
         :type bucket_name: Optional[str]
         """
         self.__s3_client = s3_client or boto3.client('s3', region_name=settings.REGION)
-        self.__bucket_name = bucket_name or settings.S3_BUCKET_NAME
+        self.__bucket_name = bucket_name if bucket_name is not None else settings.S3_BUCKET_NAME
 
     def generate_presigned_upload_url(
         self,

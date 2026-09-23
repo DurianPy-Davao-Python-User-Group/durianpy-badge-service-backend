@@ -22,6 +22,8 @@ def test_settings_default_values() -> None:
     assert s.REGION == 'ap-southeast-1'
     assert s.CLOUDFRONT_URL == 'https://cdn.example.com'
     assert s.DYNAMODB_MAIN_TABLE_NAME == 'dev-test-app-main'
+    assert s.S3_BUCKET_NAME == 'dev-durianpy-badge-system-bucket'
+    assert s.TECHTIX_API_BASE_URL == ''
     assert s.ENABLE_SWAGGER_BASIC_AUTH is False
     assert s.SWAGGER_BASIC_AUTH_USERNAME == ''
     assert s.SWAGGER_BASIC_AUTH_PASSWORD == ''
@@ -40,6 +42,8 @@ def test_settings_environment_override() -> None:
         'LOG_LEVEL': 'warning',
         'REGION': 'us-east-1',
         'CLOUDFRONT_URL': 'https://custom-cdn.example.com',
+        'S3_BUCKET_NAME': 'custom-s3-bucket',
+        'TECHTIX_API_BASE_URL': 'https://custom-techtix.example.com',
         'ENABLE_SWAGGER_BASIC_AUTH': 'true',
         'SWAGGER_BASIC_AUTH_USERNAME': 'admin',
         'SWAGGER_BASIC_AUTH_PASSWORD': 'secret-password',
@@ -54,6 +58,8 @@ def test_settings_environment_override() -> None:
         assert s.REGION == 'us-east-1'
         assert s.CLOUDFRONT_URL == 'https://custom-cdn.example.com'
         assert s.DYNAMODB_MAIN_TABLE_NAME == 'prod-custom-app-main'
+        assert s.S3_BUCKET_NAME == 'custom-s3-bucket'
+        assert s.TECHTIX_API_BASE_URL == 'https://custom-techtix.example.com'
         assert s.ENABLE_SWAGGER_BASIC_AUTH is True
         assert s.SWAGGER_BASIC_AUTH_USERNAME == 'admin'
         assert s.SWAGGER_BASIC_AUTH_PASSWORD == 'secret-password'
@@ -75,6 +81,26 @@ def test_settings_dynamodb_table_name_explicit_override() -> None:
     with patch.dict(os.environ, env_vars):
         s = Settings()
         assert s.DYNAMODB_MAIN_TABLE_NAME == 'explicit-table-name'
+
+
+def test_settings_s3_bucket_name_default_per_environment() -> None:
+    """Verify S3_BUCKET_NAME defaults to {env}-durianpy-badge-system-bucket for different stages."""
+    s_dev = Settings(_env_file=None, ENVIRONMENT=Environment.DEVELOPMENT)
+    assert s_dev.S3_BUCKET_NAME == 'dev-durianpy-badge-system-bucket'
+
+    s_prod = Settings(_env_file=None, ENVIRONMENT=Environment.PRODUCTION)
+    assert s_prod.S3_BUCKET_NAME == 'prod-durianpy-badge-system-bucket'
+
+
+def test_settings_s3_bucket_name_explicit_override() -> None:
+    """Verify explicit S3_BUCKET_NAME environment variable overrides default format."""
+    env_vars = {
+        'ENVIRONMENT': 'prod',
+        'S3_BUCKET_NAME': 'explicit-s3-bucket-name',
+    }
+    with patch.dict(os.environ, env_vars):
+        s = Settings()
+        assert s.S3_BUCKET_NAME == 'explicit-s3-bucket-name'
 
 
 def test_settings_is_local_property() -> None:
