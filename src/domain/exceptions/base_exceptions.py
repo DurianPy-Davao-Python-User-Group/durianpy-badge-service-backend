@@ -42,3 +42,9 @@ class StorageServiceError(DomainError):
     """Exception raised when external media or object storage operations fail."""
 
     pass
+
+
+class GatewayTimeoutError(DomainError):
+    """Exception raised when an external gateway operation times out."""
+
+    pass
