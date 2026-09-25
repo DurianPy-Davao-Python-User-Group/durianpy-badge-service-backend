@@ -3,9 +3,10 @@
 from typing import Any, Optional
 
 import boto3
-from botocore.exceptions import ClientError
+from botocore.exceptions import BotoCoreError, ClientError
 
 from src.application.ports.storage.badge_storage_port import BadgeStoragePort
+from src.core.logging import logger, mask_string
 from src.core.settings import settings
 from src.domain.exceptions.badge_design_exceptions import StoragePresignError
 
@@ -25,8 +26,13 @@ class S3StorageAdapter(BadgeStoragePort):
         :type s3_client: Optional[Any]
         :param bucket_name: Optional S3 bucket name; defaults to settings.S3_BUCKET_NAME.
         :type bucket_name: Optional[str]
+        :raises StoragePresignError: If the S3 client cannot be initialized.
         """
-        self.__s3_client = s3_client or boto3.client('s3', region_name=settings.REGION)
+        try:
+            self.__s3_client = s3_client or boto3.client('s3', region_name=settings.REGION)
+        except (ClientError, BotoCoreError) as exc:
+            logger.error(f'Failed to initialize S3 client: {mask_string(str(exc))}')
+            raise StoragePresignError('Failed to initialize S3 client.') from exc
         self.__bucket_name = bucket_name if bucket_name is not None else settings.S3_BUCKET_NAME
 
     def generate_presigned_upload_url(
@@ -71,5 +77,8 @@ class S3StorageAdapter(BadgeStoragePort):
                 ExpiresIn=expiration,
             )
             return url
-        except ClientError as exc:
-            raise StoragePresignError(f'Failed to generate pre-signed upload URL: {exc}') from exc
+        except (ClientError, BotoCoreError) as exc:
+            logger.error(
+                f'Failed to sign badge artwork upload for {mask_string(storage_path)}: {mask_string(str(exc))}'
+            )
+            raise StoragePresignError('Failed to generate pre-signed upload URL.') from exc
