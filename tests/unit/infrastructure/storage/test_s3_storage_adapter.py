@@ -1,7 +1,7 @@
 """Unit tests for S3StorageAdapter using Moto."""
 
 from typing import Any
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import boto3
 import pytest
@@ -22,6 +22,19 @@ def test_init_defaults() -> None:
     """Test S3StorageAdapter initialization with default settings."""
     adapter = S3StorageAdapter()
     assert adapter is not None
+
+
+def test_init_masks_client_error(caplog: pytest.LogCaptureFixture) -> None:
+    """Translate client initialization failure without logging sensitive error text."""
+    with patch('src.infrastructure.storage.s3_storage_adapter.boto3.client') as client_factory:
+        client_factory.side_effect = ClientError(
+            {'Error': {'Code': 'AccessDenied', 'Message': 'secret-token'}},
+            'CreateClient',
+        )
+        with pytest.raises(StoragePresignError, match='Failed to initialize S3 client'):
+            S3StorageAdapter(bucket_name='test-badge-bucket')
+
+    assert 'secret-token' not in caplog.text
 
 
 @mock_aws
