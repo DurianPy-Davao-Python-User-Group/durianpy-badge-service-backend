@@ -74,3 +74,19 @@ class PaginatedPublicCatalogOutputDTO(BaseModel):
 
     data: list[PublicBadgeDesignOutputDTO]
     last_evaluated_key: Optional[str] = None
+
+
+class PresignUploadInputDTO(BaseModel):
+    """Input values for requesting a badge artwork upload URL."""
+
+    meetup_id: str
+    filename: str
+    content_type: str
+    role: str
+
+
+class PresignUploadOutputDTO(BaseModel):
+    """Generated upload URL and relative badge artwork storage path."""
+
+    upload_url: str
+    storage_path: str
