@@ -18,6 +18,20 @@ data "aws_ssm_parameter" "swagger_basic_auth_password" {
   with_decryption = true
 }
 
+data "aws_ssm_parameter" "cognito_user_pool_id" {
+  name            = "/durianpy-badge-system/backend/cognito-user-pool-id-${var.environment}"
+  with_decryption = true
+}
+
+data "aws_ssm_parameter" "cognito_app_client_id" {
+  name            = "/durianpy-badge-system/backend/cognito-app-client-id-${var.environment}"
+  with_decryption = true
+}
+
+data "aws_ssm_parameter" "techtix_api_base_url" {
+  name = "/durianpy-badge-system/backend/techtix-api-base-url-${var.environment}"
+}
+
 locals {
   application_name = var.app_name
   environment      = var.environment
@@ -54,6 +68,10 @@ locals {
     REGION                      = local.aws_region
     CLOUDFRONT_URL              = data.aws_ssm_parameter.cloudfront_url.value
     DYNAMODB_MAIN_TABLE_NAME    = "${local.environment}-${local.application_name}-main"
+    S3_BUCKET_NAME              = "${local.environment}-durianpy-badge-system-bucket"
+    COGNITO_USER_POOL_ID        = data.aws_ssm_parameter.cognito_user_pool_id.value
+    COGNITO_APP_CLIENT_ID       = data.aws_ssm_parameter.cognito_app_client_id.value
+    TECHTIX_API_BASE_URL        = data.aws_ssm_parameter.techtix_api_base_url.value
     ENABLE_SWAGGER_BASIC_AUTH   = local.enable_basic_auth ? "true" : "false"
     SWAGGER_BASIC_AUTH_USERNAME = local.basic_auth_username
     SWAGGER_BASIC_AUTH_PASSWORD = local.basic_auth_password
