@@ -119,6 +119,15 @@ locals {
       resources = [
         "arn:aws:lambda:${local.aws_region}:*:function:${local.service_name}-api*"
       ]
+    },
+    {
+      effect = "Allow"
+      actions = [
+        "s3:PutObject"
+      ]
+      resources = [
+        "arn:aws:s3:::${local.environment}-${local.application_name}-bucket/designs/*"
+      ]
     }
   ]
 
