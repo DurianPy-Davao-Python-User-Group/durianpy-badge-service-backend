@@ -108,3 +108,21 @@ def test_get_public_badge_designs_endpoint_with_invalid_year() -> None:
     response = client.get('/api/public/designs?year=invalid_year')
     assert response.status_code == 422
     assert response.json()['error']['code'] == 'REQUEST_VALIDATION_ERROR'
+
+
+def test_get_public_badge_designs_endpoint_with_invalid_cursor() -> None:
+    """Verify malformed pagination cursors return a request validation response."""
+    client = TestClient(app)
+    response = client.get('/api/public/designs?lastEvaluatedKey=invalid')
+
+    assert response.status_code == 422
+    assert response.json()['error']['code'] == 'REQUEST_VALIDATION_ERROR'
+
+
+def test_get_public_badge_designs_endpoint_rejects_invalid_limit() -> None:
+    """Verify catalog limits outside the supported range return 422."""
+    client = TestClient(app)
+    response = client.get('/api/public/designs?limit=101')
+
+    assert response.status_code == 422
+    assert response.json()['error']['code'] == 'REQUEST_VALIDATION_ERROR'

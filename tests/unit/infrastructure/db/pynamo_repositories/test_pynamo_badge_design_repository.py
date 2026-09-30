@@ -141,24 +141,34 @@ def test_moto_query_public_catalog_all_and_filters(
 
     # 1. Query entire 2026 catalog (should return 3 items)
     results_2026 = badge_design_repository.query_public_catalog(year='2026')
-    assert len(results_2026) == 3
-    assert [r.design_id for r in results_2026] == ['d-1', 'd-2', 'd-3']
+    assert len(results_2026[0]) == 3
+    assert [r.design_id for r in results_2026[0]] == ['d-1', 'd-2', 'd-3']
+
+    first_page = badge_design_repository.query_public_catalog(year='2026', limit=1)
+    assert [r.design_id for r in first_page[0]] == ['d-1']
+    assert first_page[1] is not None
+    second_page = badge_design_repository.query_public_catalog(
+        year='2026',
+        limit=1,
+        last_evaluated_key=first_page[1],
+    )
+    assert [r.design_id for r in second_page[0]] == ['d-2']
 
     # 2. Query with year_gt
     results_gt = badge_design_repository.query_public_catalog(
         year='2026',
         year_gt='2026-04-01T00:00:00Z',
     )
-    assert len(results_gt) == 2
-    assert [r.design_id for r in results_gt] == ['d-2', 'd-3']
+    assert len(results_gt[0]) == 2
+    assert [r.design_id for r in results_gt[0]] == ['d-2', 'd-3']
 
     # 3. Query with year_lt
     results_lt = badge_design_repository.query_public_catalog(
         year='2026',
         year_lt='2026-07-01T00:00:00Z',
     )
-    assert len(results_lt) == 2
-    assert [r.design_id for r in results_lt] == ['d-1', 'd-2']
+    assert len(results_lt[0]) == 2
+    assert [r.design_id for r in results_lt[0]] == ['d-1', 'd-2']
 
     # 4. Query with between (year_gt and year_lt)
     results_between = badge_design_repository.query_public_catalog(
@@ -166,17 +176,17 @@ def test_moto_query_public_catalog_all_and_filters(
         year_gt='2026-04-01T00:00:00Z',
         year_lt='2026-08-01T00:00:00Z',
     )
-    assert len(results_between) == 1
-    assert results_between[0].design_id == 'd-2'
+    assert len(results_between[0]) == 1
+    assert results_between[0][0].design_id == 'd-2'
 
     # 5. Query 2025 catalog
     results_2025 = badge_design_repository.query_public_catalog(year='2025')
-    assert len(results_2025) == 1
-    assert results_2025[0].design_id == 'd-4'
+    assert len(results_2025[0]) == 1
+    assert results_2025[0][0].design_id == 'd-4'
 
     # 6. Query non-existent year
     results_empty = badge_design_repository.query_public_catalog(year='2024')
-    assert results_empty == []
+    assert results_empty == ([], None)
 
 
 def test_moto_query_public_catalog_raises_domain_exception_on_db_error(
