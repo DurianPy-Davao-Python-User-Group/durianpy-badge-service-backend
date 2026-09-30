@@ -54,8 +54,8 @@
     }
   },
   "mounts": [
-    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.aws,target=/root/.aws,type=bind",
-    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.gitconfig,target=/root/.gitconfig,type=bind,readonly"
+    "source=${localEnv:USERPROFILE}/.aws,target=/root/.aws,type=bind",
+    "source=${localEnv:USERPROFILE}/.gitconfig,target=/root/.gitconfig,type=bind,readonly"
   ],
   "forwardPorts": [
     8000
