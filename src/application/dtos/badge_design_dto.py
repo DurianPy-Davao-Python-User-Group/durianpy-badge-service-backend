@@ -4,6 +4,8 @@ from typing import Any, Optional
 
 from pydantic import BaseModel
 
+from src.domain.models.badge_design import BadgeDesignDomainModel
+
 
 class MeetupDetailDTO(BaseModel):
     """DTO representing meetup details."""
@@ -33,6 +35,8 @@ class PublicCatalogQueryDTO(BaseModel):
     year: str
     year_gt: Optional[str] = None
     year_lt: Optional[str] = None
+    limit: int = 10
+    last_evaluated_key: Optional[str] = None
 
 
 class BadgeDesignOutputDTO(BaseModel):
@@ -56,3 +60,17 @@ class PublicBadgeDesignOutputDTO(BaseModel):
     name: str
     design_url: str
     role: str
+
+
+class PublicCatalogOutputDTO(BaseModel):
+    """Output DTO for a public catalog of badge designs from Repository."""
+
+    data: list[BadgeDesignDomainModel]
+    last_evaluated_key: Optional[dict[str, Any]] = None
+
+
+class PaginatedPublicCatalogOutputDTO(BaseModel):
+    """Output DTO for a page of public catalog badge designs."""
+
+    data: list[PublicBadgeDesignOutputDTO]
+    last_evaluated_key: Optional[str] = None

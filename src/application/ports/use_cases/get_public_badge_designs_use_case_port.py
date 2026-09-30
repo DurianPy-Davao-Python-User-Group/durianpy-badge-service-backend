@@ -3,7 +3,7 @@
 from abc import abstractmethod
 from typing import Optional
 
-from src.application.dtos.badge_design_dto import PublicBadgeDesignOutputDTO
+from src.application.dtos.badge_design_dto import PaginatedPublicCatalogOutputDTO
 from src.application.ports.use_case_port import UseCasePort
 
 
@@ -14,13 +14,17 @@ class GetPublicBadgeDesignsUseCasePort(UseCasePort):
     def execute(
         self,
         year: Optional[str] = None,
-    ) -> list[PublicBadgeDesignOutputDTO]:
+        year_gt: Optional[str] = None,
+        year_lt: Optional[str] = None,
+        limit: int = 10,
+        last_evaluated_key: Optional[str] = None,
+    ) -> PaginatedPublicCatalogOutputDTO:
         """
         Retrieve public badge design catalog items for a given year.
 
         :param year: Optional target catalog year.
         :type year: Optional[str]
-        :returns: List of PublicBadgeDesignOutputDTO items with resolved design URLs.
-        :rtype: list[PublicBadgeDesignOutputDTO]
+        :returns: A page of designs with an optional opaque continuation token.
+        :rtype: PaginatedPublicCatalogOutputDTO
         """
         pass

@@ -4,7 +4,11 @@ from typing import Any, Optional
 
 import pytest
 
-from src.application.dtos.badge_design_dto import MeetupDetailDTO
+from src.application.dtos.badge_design_dto import (
+    MeetupDetailDTO,
+    PaginatedPublicCatalogOutputDTO,
+    PublicCatalogOutputDTO,
+)
 from src.application.ports.gateways.techtix_gateway_port import TechTixGatewayPort
 from src.application.ports.repositories.badge_design_repository import (
     BadgeDesignRepositoryPort,
@@ -55,12 +59,18 @@ def test_get_public_badge_designs_use_case_port_contract() -> None:
         def execute(
             self,
             year: Optional[str] = None,
-        ) -> Any:
-            super().execute(year=year)
-            return []
+            year_gt: Optional[str] = None,
+            year_lt: Optional[str] = None,
+            limit: int = 10,
+            last_evaluated_key: Optional[str] = None,
+        ) -> PaginatedPublicCatalogOutputDTO:
+            super().execute(
+                year=year, year_gt=year_gt, year_lt=year_lt, limit=limit, last_evaluated_key=last_evaluated_key
+            )
+            return PaginatedPublicCatalogOutputDTO(data=[], last_evaluated_key=None)
 
     instance = ConcreteCatalogUseCase()
-    assert instance.execute(year='2026') == []
+    assert instance.execute(year='2026') == PaginatedPublicCatalogOutputDTO(data=[], last_evaluated_key=None)
 
 
 def test_badge_issuance_repository_port_contract() -> None:
@@ -131,9 +141,11 @@ def test_badge_design_repository_port_contract() -> None:
             year: str,
             year_gt: Optional[str] = None,
             year_lt: Optional[str] = None,
-        ) -> list[BadgeDesignDomainModel]:
-            super().query_public_catalog(year, year_gt, year_lt)
-            return []
+            limit: int = 10,
+            last_evaluated_key: Optional[dict[str, Any]] = None,
+        ) -> PublicCatalogOutputDTO:
+            super().query_public_catalog(year, year_gt, year_lt, limit, last_evaluated_key)
+            return PublicCatalogOutputDTO(data=[], last_evaluated_key=None)
 
     dummy_design = BadgeDesignDomainModel(
         design_id='d-1',
@@ -144,7 +156,7 @@ def test_badge_design_repository_port_contract() -> None:
     )
     repo = ConcreteDesignRepo()
     assert repo.create_design(dummy_design, '2026', '2026-01-01', 'admin') == dummy_design
-    assert repo.query_public_catalog('2026') == []
+    assert repo.query_public_catalog('2026') == ([], None)
 
 
 def test_media_url_resolver_port_contract() -> None:
@@ -157,9 +169,9 @@ def test_media_url_resolver_port_contract() -> None:
         MediaUrlResolverPort()  # type: ignore[abstract]
 
     class ConcreteResolver(MediaUrlResolverPort):
-        def resolve_url(self, relative_storage_path: str) -> str:
-            super().resolve_url(relative_storage_path)
-            return f'https://cdn.example.com/{relative_storage_path}'
+        def resolve_url(self, storage_path: str) -> str:
+            super().resolve_url(storage_path)
+            return f'https://cdn.example.com/{storage_path}'
 
     resolver = ConcreteResolver()
     assert resolver.resolve_url('path/to/img.webp') == 'https://cdn.example.com/path/to/img.webp'

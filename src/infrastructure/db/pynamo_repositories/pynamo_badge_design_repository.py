@@ -1,10 +1,11 @@
 """PynamoDB implementation of badge design repository port."""
 
-from typing import Optional
+from typing import Any, Optional
 
 from pynamodb.exceptions import PynamoDBException
 from pynamodb.transactions import TransactGet, TransactWrite
 
+from src.application.dtos.badge_design_dto import PublicCatalogOutputDTO
 from src.application.ports.repositories.badge_design_repository import (
     BadgeDesignRepositoryPort,
 )
@@ -134,7 +135,9 @@ class PynamoBadgeDesignRepository(BadgeDesignRepositoryPort):
         year: str,
         year_gt: Optional[str] = None,
         year_lt: Optional[str] = None,
-    ) -> list[BadgeDesignDomainModel]:
+        limit: int = 10,
+        last_evaluated_key: Optional[dict[str, Any]] = None,
+    ) -> PublicCatalogOutputDTO:
         """
         Query public catalog badge designs for a given year with date filters.
 
@@ -147,8 +150,12 @@ class PynamoBadgeDesignRepository(BadgeDesignRepositoryPort):
         :type year_gt: Optional[str]
         :param year_lt: Optional upper bound ISO date filter.
         :type year_lt: Optional[str]
-        :returns: List of matching BadgeDesignDomainModel instances.
-        :rtype: list[BadgeDesignDomainModel]
+        :param limit: Maximum number of records to return.
+        :type limit: int
+        :param last_evaluated_key: DynamoDB key to continue from.
+        :type last_evaluated_key: Optional[dict[str, Any]]
+        :returns: Matching designs and the next DynamoDB evaluation key.
+        :rtype: PublicCatalogOutputDTO
         :raises BadgeDesignQueryError: If DynamoDB query or transaction operation fails.
         """
         try:
@@ -165,15 +172,17 @@ class PynamoBadgeDesignRepository(BadgeDesignRepositoryPort):
             elif year_lt is not None:
                 range_key_condition = BadgeDesign.gsi1sk < f'{self.__MEETUPDATE_GSI1SK_PREFIX}{year_lt}'
 
-            query_results = list(
-                BadgeDesign.query_by_year_index.query(
-                    gsi1pk,
-                    range_key_condition=range_key_condition,
-                )
+            query_iterator = BadgeDesign.query_by_year_index.query(
+                gsi1pk,
+                range_key_condition=range_key_condition,
+                limit=limit,
+                last_evaluated_key=last_evaluated_key,
             )
+            query_results = list(query_iterator)
+            next_key = query_iterator.last_evaluated_key
 
             if not query_results:
-                return []
+                return PublicCatalogOutputDTO(data=[], last_evaluated_key=next_key)
 
             # TODO: Implement chunking for query results exceeding DynamoDB's 100-item
             # transaction limit
@@ -183,7 +192,9 @@ class PynamoBadgeDesignRepository(BadgeDesignRepositoryPort):
 
             records = [getattr(action, 'value', None) or item for action, item in zip(actions, query_results)]
 
-            return [self.__to_domain(record) for record in records]
+            return PublicCatalogOutputDTO(
+                data=[self.__to_domain(record) for record in records], last_evaluated_key=next_key
+            )
         except PynamoDBException as exc:
             raise BadgeDesignQueryError(f'Failed to query public catalog from DynamoDB: {exc}') from exc
         except Exception as exc:
