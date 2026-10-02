@@ -26,4 +26,11 @@ class PublicBadgeDesignItemSchema(BaseModel):
 class PublicCatalogResponseSchema(BaseModel):
     """Envelope schema for public catalog response payload."""
 
+    model_config = ConfigDict(
+        populate_by_name=True,
+        alias_generator=to_camel,
+    )
+
     data: list[PublicBadgeDesignItemSchema]
+
+    last_evaluated_key: Optional[str] = None

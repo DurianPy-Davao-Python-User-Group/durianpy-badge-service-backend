@@ -1,8 +1,9 @@
 """Abstract repository port contract for badge design persistence."""
 
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Any, Optional
 
+from src.application.dtos.badge_design_dto import PublicCatalogOutputDTO
 from src.domain.models.badge_design import BadgeDesignDomainModel
 
 
@@ -39,7 +40,9 @@ class BadgeDesignRepositoryPort(ABC):
         year: str,
         year_gt: Optional[str] = None,
         year_lt: Optional[str] = None,
-    ) -> list[BadgeDesignDomainModel]:
+        limit: int = 10,
+        last_evaluated_key: Optional[dict[str, Any]] = None,
+    ) -> PublicCatalogOutputDTO:
         """Query public catalog badge designs for a given year with date filters.
 
         :param year: Target catalog year (YYYY).
@@ -48,7 +51,11 @@ class BadgeDesignRepositoryPort(ABC):
         :type year_gt: Optional[str]
         :param year_lt: Optional upper bound ISO date filter.
         :type year_lt: Optional[str]
-        :returns: List of matching BadgeDesignDomainModel instances.
-        :rtype: list[BadgeDesignDomainModel]
+        :param limit: Maximum number of records to return.
+        :type limit: int
+        :param last_evaluated_key: DynamoDB key to continue from.
+        :type last_evaluated_key: Optional[dict[str, Any]]
+        :returns: Matching designs and the next DynamoDB evaluation key.
+        :rtype: PublicCatalogOutputDTO
         """
         pass

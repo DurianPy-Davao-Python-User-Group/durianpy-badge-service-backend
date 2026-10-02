@@ -1,10 +1,18 @@
 """HTTP schemas for administrator badge artwork uploads."""
 
+from enum import StrEnum
 from typing import Literal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
+
+
+class BadgeDesignRole(StrEnum):
+    """Roles supported by badge artwork uploads."""
+
+    PARTICIPANT = 'participant'
+    SPEAKER = 'speaker'
 
 
 class PresignBadgeDesignUploadRequestSchema(BaseModel):
@@ -15,7 +23,7 @@ class PresignBadgeDesignUploadRequestSchema(BaseModel):
     meetup_id: UUID
     filename: str = Field(pattern=r'^[A-Za-z0-9][A-Za-z0-9._-]*\.webp$')
     content_type: Literal['image/webp']
-    role: Literal['participant', 'speaker']
+    role: BadgeDesignRole
 
 
 class PresignBadgeDesignUploadResponseSchema(BaseModel):
