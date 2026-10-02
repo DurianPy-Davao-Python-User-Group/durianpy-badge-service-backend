@@ -62,6 +62,22 @@ class PublicBadgeDesignOutputDTO(BaseModel):
     role: str
 
 
+class PresignUploadInputDTO(BaseModel):
+    """Input values for requesting a badge artwork upload URL."""
+
+    meetup_id: str
+    filename: str
+    content_type: str
+    role: str
+
+
+class PresignUploadOutputDTO(BaseModel):
+    """Generated upload URL and relative badge artwork storage path."""
+
+    upload_url: str
+    storage_path: str
+
+
 class PublicCatalogOutputDTO(BaseModel):
     """Output DTO for a public catalog of badge designs from Repository."""
 
