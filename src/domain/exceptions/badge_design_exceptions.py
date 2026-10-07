@@ -3,6 +3,7 @@
 from src.domain.exceptions.base_exceptions import (
     DomainError,
     EntityNotFoundError,
+    EntityValidationError,
     RepositoryError,
     StorageServiceError,
 )
@@ -10,6 +11,16 @@ from src.domain.exceptions.base_exceptions import (
 
 class BadgeDesignError(DomainError):
     """Base exception for badge design domain operations."""
+
+    pass
+
+
+class BadgeDesignVariantValidationError(EntityValidationError, BadgeDesignError):
+    """Exception raised when a badge design variant violates role-specific invariants.
+
+    Covers constraints such as a speaker badge missing its speakers list or a
+    participant badge carrying speaker data that does not belong to that variant.
+    """
 
     pass
 

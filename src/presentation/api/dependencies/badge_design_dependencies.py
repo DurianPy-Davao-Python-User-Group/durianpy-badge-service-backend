@@ -2,6 +2,7 @@
 
 from fastapi import Depends
 
+from src.application.ports.gateways.techtix_gateway_port import TechTixGatewayPort
 from src.application.ports.repositories.badge_design_repository import (
     BadgeDesignRepositoryPort,
 )
@@ -9,11 +10,17 @@ from src.application.ports.storage.badge_storage_port import BadgeStoragePort
 from src.application.ports.storage.media_url_resolver_port import (
     MediaUrlResolverPort,
 )
+from src.application.ports.use_cases.create_badge_design_use_case_port import (
+    CreateBadgeDesignUseCasePort,
+)
 from src.application.ports.use_cases.generate_badge_design_upload_url_use_case_port import (
     GenerateBadgeDesignUploadUrlUseCasePort,
 )
 from src.application.ports.use_cases.get_public_badge_designs_use_case_port import (
     GetPublicBadgeDesignsUseCasePort,
+)
+from src.application.use_cases.create_badge_design_use_case import (
+    CreateBadgeDesignUseCase,
 )
 from src.application.use_cases.generate_badge_design_upload_url_use_case import (
     GenerateBadgeDesignUploadUrlUseCase,
@@ -28,6 +35,7 @@ from src.infrastructure.storage.cloudfront_media_url_resolver import (
     CloudFrontMediaUrlResolver,
 )
 from src.infrastructure.storage.s3_storage_adapter import S3StorageAdapter
+from src.presentation.api.dependencies.techtix_dependencies import get_techtix_gateway
 
 
 def get_badge_design_repository() -> BadgeDesignRepositoryPort:
@@ -90,4 +98,27 @@ def get_public_badge_designs_use_case(
     return GetPublicBadgeDesignsUseCase(
         badge_design_repository=repository,
         media_url_resolver=media_url_resolver,
+    )
+
+
+def get_create_badge_design_use_case(
+    repository: BadgeDesignRepositoryPort = Depends(get_badge_design_repository),
+    media_url_resolver: MediaUrlResolverPort = Depends(get_media_url_resolver),
+    techtix_gateway: TechTixGatewayPort = Depends(get_techtix_gateway),
+) -> CreateBadgeDesignUseCasePort:
+    """Provide CreateBadgeDesignUseCase with all required outbound port dependencies.
+
+    :param repository: Injected badge design repository port.
+    :type repository: BadgeDesignRepositoryPort
+    :param media_url_resolver: Injected media URL resolver port.
+    :type media_url_resolver: MediaUrlResolverPort
+    :param techtix_gateway: Injected TechTix external gateway port.
+    :type techtix_gateway: TechTixGatewayPort
+    :returns: Configured use case interactor instance implementing CreateBadgeDesignUseCasePort.
+    :rtype: CreateBadgeDesignUseCasePort
+    """
+    return CreateBadgeDesignUseCase(
+        badge_design_repository=repository,
+        media_url_resolver=media_url_resolver,
+        techtix_gateway=techtix_gateway,
     )
